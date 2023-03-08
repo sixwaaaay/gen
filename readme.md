@@ -1,4 +1,5 @@
 # Gen
+
 [![ci](https://github.com/sixwaaaay/gen/actions/workflows/ci.yaml/badge.svg)](https://github.com/sixwaaaay/gen/actions/workflows/ci.yaml)
 
 Gen is a code generation tool.

@@ -8,12 +8,12 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/zeromicro/go-zero/tools/goctl/pkg/downloader"
-	"github.com/zeromicro/go-zero/tools/goctl/pkg/goctl"
-	"github.com/zeromicro/go-zero/tools/goctl/rpc/execx"
-	"github.com/zeromicro/go-zero/tools/goctl/util/env"
-	"github.com/zeromicro/go-zero/tools/goctl/util/zipx"
-	"github.com/zeromicro/go-zero/tools/goctl/vars"
+	"github.com/sixwaaaay/gen/pkg/downloader"
+	"github.com/sixwaaaay/gen/pkg/gen"
+	"github.com/sixwaaaay/gen/rpc/execx"
+	"github.com/sixwaaaay/gen/util/env"
+	"github.com/sixwaaaay/gen/util/zipx"
+	"github.com/sixwaaaay/gen/vars"
 )
 
 var url = map[string]string{
@@ -30,7 +30,7 @@ const (
 )
 
 func Install(cacheDir string) (string, error) {
-	return goctl.Install(cacheDir, Name, func(dest string) (string, error) {
+	return gen.Install(cacheDir, Name, func(dest string) (string, error) {
 		goos := runtime.GOOS
 		tempFile := filepath.Join(os.TempDir(), ZipFileName)
 		bit := 32 << (^uint(0) >> 63)

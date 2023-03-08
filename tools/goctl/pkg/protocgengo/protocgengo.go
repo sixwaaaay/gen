@@ -4,10 +4,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/zeromicro/go-zero/tools/goctl/pkg/goctl"
-	"github.com/zeromicro/go-zero/tools/goctl/pkg/golang"
-	"github.com/zeromicro/go-zero/tools/goctl/rpc/execx"
-	"github.com/zeromicro/go-zero/tools/goctl/util/env"
+	"github.com/sixwaaaay/gen/pkg/gen"
+	"github.com/sixwaaaay/gen/pkg/golang"
+	"github.com/sixwaaaay/gen/rpc/execx"
+	"github.com/sixwaaaay/gen/util/env"
 )
 
 const (
@@ -16,7 +16,7 @@ const (
 )
 
 func Install(cacheDir string) (string, error) {
-	return goctl.Install(cacheDir, Name, func(dest string) (string, error) {
+	return gen.Install(cacheDir, Name, func(dest string) (string, error) {
 		err := golang.Install(url)
 		return dest, err
 	})

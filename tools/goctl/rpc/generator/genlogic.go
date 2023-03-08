@@ -3,20 +3,21 @@ package generator
 import (
 	_ "embed"
 	"fmt"
+	"github.com/sixwaaaay/gen/util/collection"
 	"path/filepath"
 	"strings"
 
-	"github.com/zeromicro/go-zero/core/collection"
-	conf "github.com/zeromicro/go-zero/tools/goctl/config"
-	"github.com/zeromicro/go-zero/tools/goctl/rpc/parser"
-	"github.com/zeromicro/go-zero/tools/goctl/util"
-	"github.com/zeromicro/go-zero/tools/goctl/util/format"
-	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
-	"github.com/zeromicro/go-zero/tools/goctl/util/stringx"
+	conf "github.com/sixwaaaay/gen/config"
+	"github.com/sixwaaaay/gen/rpc/parser"
+	"github.com/sixwaaaay/gen/util"
+	"github.com/sixwaaaay/gen/util/format"
+	"github.com/sixwaaaay/gen/util/pathx"
+	"github.com/sixwaaaay/gen/util/stringx"
 )
 
-const logicFunctionTemplate = `{{if .hasComment}}{{.comment}}{{end}}
-func (l *{{.logicName}}) {{.method}} ({{if .hasReq}}in {{.request}}{{if .stream}},stream {{.streamBody}}{{end}}{{else}}stream {{.streamBody}}{{end}}) ({{if .hasReply}}{{.response}},{{end}} error) {
+const logicFunctionTemplate = `
+{{if .hasComment}}{{.comment}}{{end}}
+func (l *{{.logicName}}) {{.method}} (ctx context.Context,{{if .hasReq}}in {{.request}}{{if .stream}},stream {{.streamBody}}{{end}}{{else}}stream {{.streamBody}}{{end}}) ({{if .hasReply}}{{.response}},{{end}} error) {
 	// todo: add your logic here and delete this line
 	
 	return {{if .hasReply}}&{{.responseType}}{},{{end}} nil
@@ -28,7 +29,7 @@ var logicTemplate string
 
 // GenLogic generates the logic file of the rpc service, which corresponds to the RPC definition items in proto.
 func (g *Generator) GenLogic(ctx DirContext, proto parser.Proto, cfg *conf.Config,
-	c *ZRpcContext) error {
+	c *RpcContext) error {
 	if !c.Multiple {
 		return g.genLogicInCompatibility(ctx, proto, cfg)
 	}
@@ -38,24 +39,28 @@ func (g *Generator) GenLogic(ctx DirContext, proto parser.Proto, cfg *conf.Confi
 
 func (g *Generator) genLogicInCompatibility(ctx DirContext, proto parser.Proto,
 	cfg *conf.Config) error {
-	dir := ctx.GetLogic()
-	service := proto.Service[0].Service.Name
-	for _, rpc := range proto.Service[0].RPC {
+	dir := ctx.GetLogic()                      // get the directory information of the current logic processing file.
+	service := proto.Service[0].Service.Name   // get the name of the current service.
+	for _, rpc := range proto.Service[0].RPC { // Traverse all RPC methods of the current service.
 		logicName := fmt.Sprintf("%sLogic", stringx.From(rpc.Name).ToCamel())
+
+		// generate the logic processing file name of the current RPC
 		logicFilename, err := format.FileNamingFormat(cfg.NamingFormat, rpc.Name+"_logic")
 		if err != nil {
 			return err
 		}
-
+		// compose the full path of the current logic processing file.
 		filename := filepath.Join(dir.Filename, logicFilename+".go")
+		// generate logic functions.
 		functions, err := g.genLogicFunction(service, proto.PbPackage, logicName, rpc)
 		if err != nil {
 			return err
 		}
 
+		// add package path to imports.
 		imports := collection.NewSet()
-		imports.AddStr(fmt.Sprintf(`"%v"`, ctx.GetSvc().Package))
 		imports.AddStr(fmt.Sprintf(`"%v"`, ctx.GetPb().Package))
+		imports.AddStr(fmt.Sprintf(`"%v"`, ctx.GetConfig().Package))
 		text, err := pathx.LoadTemplate(category, logicTemplateFileFile, logicTemplate)
 		if err != nil {
 			return err

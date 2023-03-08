@@ -1,9 +1,9 @@
 package golang
 
-import goformat "go/format"
+import "go/format"
 
 func FormatCode(code string) string {
-	ret, err := goformat.Source([]byte(code))
+	ret, err := format.Source([]byte(code))
 	if err != nil {
 		return code
 	}

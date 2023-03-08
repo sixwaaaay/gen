@@ -4,11 +4,11 @@ import (
 	"path/filepath"
 	"strings"
 
-	conf "github.com/zeromicro/go-zero/tools/goctl/config"
-	"github.com/zeromicro/go-zero/tools/goctl/rpc/parser"
-	"github.com/zeromicro/go-zero/tools/goctl/util/ctx"
-	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
-	"github.com/zeromicro/go-zero/tools/goctl/util/stringx"
+	conf "github.com/sixwaaaay/gen/config"
+	"github.com/sixwaaaay/gen/rpc/parser"
+	"github.com/sixwaaaay/gen/util/ctx"
+	"github.com/sixwaaaay/gen/util/pathx"
+	"github.com/sixwaaaay/gen/util/stringx"
 )
 
 const (
@@ -56,7 +56,7 @@ type (
 	}
 )
 
-func mkdir(ctx *ctx.ProjectContext, proto parser.Proto, _ *conf.Config, c *ZRpcContext) (DirContext,
+func mkdir(ctx *ctx.ProjectContext, proto parser.Proto, _ *conf.Config, c *RpcContext) (DirContext,
 	error) {
 	inner := make(map[string]Dir)
 	etcDir := filepath.Join(ctx.WorkDir, "etc")
@@ -65,7 +65,6 @@ func mkdir(ctx *ctx.ProjectContext, proto parser.Proto, _ *conf.Config, c *ZRpcC
 	configDir := filepath.Join(internalDir, "config")
 	logicDir := filepath.Join(internalDir, "logic")
 	serverDir := filepath.Join(internalDir, "server")
-	svcDir := filepath.Join(internalDir, "svc")
 	pbDir := filepath.Join(ctx.WorkDir, proto.GoPackage)
 	protoGoDir := pbDir
 	if c != nil {
@@ -162,14 +161,6 @@ func mkdir(ctx *ctx.ProjectContext, proto parser.Proto, _ *conf.Config, c *ZRpcC
 		Base:     filepath.Base(serverDir),
 		GetChildPackage: func(childPath string) (string, error) {
 			return getChildPackage(serverDir, childPath)
-		},
-	}
-	inner[svc] = Dir{
-		Filename: svcDir,
-		Package:  filepath.ToSlash(filepath.Join(ctx.Path, strings.TrimPrefix(svcDir, ctx.Dir))),
-		Base:     filepath.Base(svcDir),
-		GetChildPackage: func(childPath string) (string, error) {
-			return getChildPackage(svcDir, childPath)
 		},
 	}
 

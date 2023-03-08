@@ -3,7 +3,7 @@ package generator
 import (
 	"fmt"
 
-	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
+	"github.com/sixwaaaay/gen/util/pathx"
 )
 
 const (
@@ -18,7 +18,6 @@ const (
 	mainTemplateFile                  = "main.tpl"
 	serverTemplateFile                = "server.tpl"
 	serverFuncTemplateFile            = "server-func.tpl"
-	svcTemplateFile                   = "svc.tpl"
 	rpcTemplateFile                   = "template.tpl"
 )
 
@@ -31,11 +30,10 @@ var templates = map[string]string{
 	mainTemplateFile:          mainTemplate,
 	serverTemplateFile:        serverTemplate,
 	serverFuncTemplateFile:    functionTemplate,
-	svcTemplateFile:           svcTemplate,
 	rpcTemplateFile:           rpcTemplateText,
 }
 
-// GenTemplates is the entry for command goctl template,
+// GenTemplates is the entry for command gen template,
 // it will create the specified category
 func GenTemplates() error {
 	return pathx.InitTemplates(category, templates)

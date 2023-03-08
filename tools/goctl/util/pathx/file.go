@@ -13,23 +13,23 @@ import (
 	"strings"
 
 	"github.com/logrusorgru/aurora"
-	"github.com/zeromicro/go-zero/tools/goctl/internal/version"
+	"github.com/sixwaaaay/gen/internal/version"
 )
 
 // NL defines a new line.
 const (
 	NL              = "\n"
-	goctlDir        = ".goctl"
+	genDir          = ".gen"
 	gitDir          = ".git"
 	autoCompleteDir = ".auto_complete"
 	cacheDir        = "cache"
 )
 
-var goctlHome string
+var genHome string
 
-// RegisterGoctlHome register goctl home path.
-func RegisterGoctlHome(home string) {
-	goctlHome = home
+// RegisterHome register gen home path.
+func RegisterHome(home string) {
+	genHome = home
 }
 
 // CreateIfNotExist creates a file if it is not exists.
@@ -75,9 +75,9 @@ func FileNameWithoutExt(file string) string {
 	return strings.TrimSuffix(file, filepath.Ext(file))
 }
 
-// GetGoctlHome returns the path value of the goctl, the default path is ~/.goctl, if the path has
-// been set by calling the RegisterGoctlHome method, the user-defined path refers to.
-func GetGoctlHome() (home string, err error) {
+// GetHome returns the path value of the gen, the default path is ~/.gen, if the path has
+// been set by calling the RegisterHome method, the user-defined path refers to.
+func GetHome() (home string, err error) {
 	defer func() {
 		if err != nil {
 			return
@@ -88,63 +88,63 @@ func GetGoctlHome() (home string, err error) {
 			MkdirIfNotExist(home)
 		}
 	}()
-	if len(goctlHome) != 0 {
-		home = goctlHome
+	if len(genHome) != 0 {
+		home = genHome
 		return
 	}
-	home, err = GetDefaultGoctlHome()
+	home, err = GetDefaultHome()
 	return
 }
 
-// GetDefaultGoctlHome returns the path value of the goctl home where Join $HOME with .goctl.
-func GetDefaultGoctlHome() (string, error) {
+// GetDefaultHome returns the path value of the gen home where Join $HOME with .gen.
+func GetDefaultHome() (string, error) {
 	home, err := os.UserHomeDir()
 	if err != nil {
 		return "", err
 	}
-	return filepath.Join(home, goctlDir), nil
+	return filepath.Join(home, genDir), nil
 }
 
-// GetGitHome returns the git home of goctl.
+// GetGitHome returns the git home of gen.
 func GetGitHome() (string, error) {
-	goctlH, err := GetGoctlHome()
+	genH, err := GetHome()
 	if err != nil {
 		return "", err
 	}
 
-	return filepath.Join(goctlH, gitDir), nil
+	return filepath.Join(genH, gitDir), nil
 }
 
-// GetAutoCompleteHome returns the auto_complete home of goctl.
+// GetAutoCompleteHome returns the auto_complete home of gen.
 func GetAutoCompleteHome() (string, error) {
-	goctlH, err := GetGoctlHome()
+	genH, err := GetHome()
 	if err != nil {
 		return "", err
 	}
 
-	return filepath.Join(goctlH, autoCompleteDir), nil
+	return filepath.Join(genH, autoCompleteDir), nil
 }
 
-// GetCacheDir returns the cache dit of goctl.
+// GetCacheDir returns the cache dit of gen.
 func GetCacheDir() (string, error) {
-	goctlH, err := GetGoctlHome()
+	genH, err := GetHome()
 	if err != nil {
 		return "", err
 	}
 
-	return filepath.Join(goctlH, cacheDir), nil
+	return filepath.Join(genH, cacheDir), nil
 }
 
-// GetTemplateDir returns the category path value in GoctlHome where could get it by GetGoctlHome.
+// GetTemplateDir returns the category path value in Home where could get it by GetHome.
 func GetTemplateDir(category string) (string, error) {
-	home, err := GetGoctlHome()
+	home, err := GetHome()
 	if err != nil {
 		return "", err
 	}
-	if home == goctlHome {
+	if home == genHome {
 		// backward compatible, it will be removed in the feature
 		// backward compatible start.
-		beforeTemplateDir := filepath.Join(home, version.GetGoctlVersion(), category)
+		beforeTemplateDir := filepath.Join(home, version.Version(), category)
 		fs, _ := ioutil.ReadDir(beforeTemplateDir)
 		var hasContent bool
 		for _, e := range fs {
@@ -160,10 +160,10 @@ func GetTemplateDir(category string) (string, error) {
 		return filepath.Join(home, category), nil
 	}
 
-	return filepath.Join(home, version.GetGoctlVersion(), category), nil
+	return filepath.Join(home, version.Version(), category), nil
 }
 
-// InitTemplates creates template files GoctlHome where could get it by GetGoctlHome.
+// InitTemplates creates template files Home where could get it by GetHome.
 func InitTemplates(category string, templates map[string]string) error {
 	dir, err := GetTemplateDir(category)
 	if err != nil {

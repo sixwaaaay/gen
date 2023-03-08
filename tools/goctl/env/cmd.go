@@ -11,17 +11,17 @@ var (
 	// Cmd describes an env command.
 	Cmd = &cobra.Command{
 		Use:   "env",
-		Short: "Check or edit goctl environment",
+		Short: "Check or edit gen environment",
 		RunE:  write,
 	}
 	installCmd = &cobra.Command{
 		Use:   "install",
-		Short: "Goctl env installation",
+		Short: "env installation",
 		RunE:  install,
 	}
 	checkCmd = &cobra.Command{
 		Use:   "check",
-		Short: "Detect goctl env and dependency tools",
+		Short: "Detect gen env and dependency tools",
 		RunE:  check,
 	}
 )
@@ -29,7 +29,7 @@ var (
 func init() {
 	// The root command flags
 	Cmd.Flags().StringSliceVarP(&sliceVarWriteValue,
-		"write", "w", nil, "Edit goctl environment")
+		"write", "w", nil, "Edit gen environment")
 	Cmd.PersistentFlags().BoolVarP(&boolVarForce,
 		"force", "f", false,
 		"Silent installation of non-existent dependencies")

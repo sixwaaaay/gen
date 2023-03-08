@@ -2,12 +2,11 @@ package util
 
 import (
 	"bytes"
-	goformat "go/format"
+	"fmt"
+	"github.com/sixwaaaay/gen/util/pathx"
+	"go/format"
 	"io/ioutil"
 	"text/template"
-
-	"github.com/zeromicro/go-zero/tools/goctl/internal/errorx"
-	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
 )
 
 const regularPerm = 0o666
@@ -56,21 +55,21 @@ func (t *DefaultTemplate) SaveTo(data any, path string, forceUpdate bool) error 
 func (t *DefaultTemplate) Execute(data any) (*bytes.Buffer, error) {
 	tem, err := template.New(t.name).Parse(t.text)
 	if err != nil {
-		return nil, errorx.Wrap(err, "template parse error:", t.text)
+		return nil, fmt.Errorf("template parse error: %s, %w", t.text, err)
 	}
 
 	buf := new(bytes.Buffer)
 	if err = tem.Execute(buf, data); err != nil {
-		return nil, errorx.Wrap(err, "template execute error:", t.text)
+		return nil, fmt.Errorf("template execute error: %s, %w", t.text, err)
 	}
 
 	if !t.goFmt {
 		return buf, nil
 	}
 
-	formatOutput, err := goformat.Source(buf.Bytes())
+	formatOutput, err := format.Source(buf.Bytes())
 	if err != nil {
-		return nil, errorx.Wrap(err, "go format error:", buf.String())
+		return nil, fmt.Errorf("template format error: %s, %w", t.text, err)
 	}
 
 	buf.Reset()

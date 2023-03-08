@@ -6,17 +6,17 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/sixwaaaay/gen/rpc/generator"
+	"github.com/sixwaaaay/gen/util"
+	"github.com/sixwaaaay/gen/util/console"
+	"github.com/sixwaaaay/gen/util/pathx"
 	"github.com/spf13/cobra"
-	"github.com/zeromicro/go-zero/tools/goctl/rpc/generator"
-	"github.com/zeromicro/go-zero/tools/goctl/util"
-	"github.com/zeromicro/go-zero/tools/goctl/util/console"
-	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
 )
 
 var (
 	// VarStringOutput describes the output.
 	VarStringOutput string
-	// VarStringHome describes the goctl home.
+	// VarStringHome describes the gen home.
 	VarStringHome string
 	// VarStringRemote describes the remote git repository.
 	VarStringRemote string
@@ -36,8 +36,8 @@ var (
 	VarStringSliceGoGRPCOpt []string
 	// VarStringStyle describes the style of output files.
 	VarStringStyle string
-	// VarStringZRPCOut describes the zRPC output.
-	VarStringZRPCOut string
+	// VarStringRPCOut describes the RPC output.
+	VarStringRPCOut string
 	// VarBoolIdea describes whether idea or not
 	VarBoolIdea bool
 	// VarBoolVerbose describes whether verbose.
@@ -46,11 +46,11 @@ var (
 	VarBoolMultiple bool
 )
 
-// RPCNew is to generate rpc greet service, this greet service can speed
-// up your understanding of the zrpc service structure
+// RPCNew is to generate rpc greet service, greet service can speed
+// up your understanding of the rpc service structure
 func RPCNew(_ *cobra.Command, args []string) error {
-	rpcname := args[0]
-	ext := filepath.Ext(rpcname)
+	rpcName := args[0]
+	ext := filepath.Ext(rpcName)
 	if len(ext) > 0 {
 		return fmt.Errorf("unexpected ext: %s", ext)
 	}
@@ -66,11 +66,11 @@ func RPCNew(_ *cobra.Command, args []string) error {
 		}
 	}
 	if len(home) > 0 {
-		pathx.RegisterGoctlHome(home)
+		pathx.RegisterHome(home)
 	}
 
-	protoName := rpcname + ".proto"
-	filename := filepath.Join(".", rpcname, protoName)
+	protoName := rpcName + ".proto"
+	filename := filepath.Join(".", rpcName, protoName)
 	src, err := filepath.Abs(filename)
 	if err != nil {
 		return err
@@ -81,7 +81,7 @@ func RPCNew(_ *cobra.Command, args []string) error {
 		return err
 	}
 
-	var ctx generator.ZRpcContext
+	var ctx generator.RpcContext
 	ctx.Src = src
 	ctx.GoOutput = filepath.Dir(src)
 	ctx.GrpcOutput = filepath.Dir(src)
@@ -106,7 +106,7 @@ func RPCNew(_ *cobra.Command, args []string) error {
 // RPCTemplate is the entry for generate rpc template
 func RPCTemplate(latest bool) error {
 	if !latest {
-		console.Warning("deprecated: goctl rpc template -o is deprecated and will be removed in the future, use goctl rpc -o instead")
+		console.Warning("deprecated: gen rpc template -o is deprecated and will be removed in the future, use gen rpc -o instead")
 	}
 	protoFile := VarStringOutput
 	home := VarStringHome
@@ -119,7 +119,7 @@ func RPCTemplate(latest bool) error {
 		}
 	}
 	if len(home) > 0 {
-		pathx.RegisterGoctlHome(home)
+		pathx.RegisterHome(home)
 	}
 
 	if len(protoFile) == 0 {

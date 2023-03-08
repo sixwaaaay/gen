@@ -3,13 +3,13 @@ package generator
 import (
 	"path/filepath"
 
-	"github.com/zeromicro/go-zero/tools/goctl/rpc/parser"
-	"github.com/zeromicro/go-zero/tools/goctl/util/console"
-	"github.com/zeromicro/go-zero/tools/goctl/util/ctx"
-	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
+	"github.com/sixwaaaay/gen/rpc/parser"
+	"github.com/sixwaaaay/gen/util/console"
+	"github.com/sixwaaaay/gen/util/ctx"
+	"github.com/sixwaaaay/gen/util/pathx"
 )
 
-type ZRpcContext struct {
+type RpcContext struct {
 	// Sre is the source file of the proto.
 	Src string
 	// ProtoCmd is the command to generate proto files.
@@ -33,8 +33,8 @@ type ZRpcContext struct {
 // Generate generates a rpc service, through the proto file,
 // code storage directory, and proto import parameters to control
 // the source file and target location of the rpc service that needs to be generated
-func (g *Generator) Generate(zctx *ZRpcContext) error {
-	abs, err := filepath.Abs(zctx.Output)
+func (g *Generator) Generate(context *RpcContext) error {
+	abs, err := filepath.Abs(context.Output)
 	if err != nil {
 		return err
 	}
@@ -55,12 +55,12 @@ func (g *Generator) Generate(zctx *ZRpcContext) error {
 	}
 
 	p := parser.NewDefaultProtoParser()
-	proto, err := p.Parse(zctx.Src, zctx.Multiple)
+	proto, err := p.Parse(context.Src, context.Multiple)
 	if err != nil {
 		return err
 	}
 
-	dirCtx, err := mkdir(projectCtx, proto, g.cfg, zctx)
+	dirCtx, err := mkdir(projectCtx, proto, g.cfg, context)
 	if err != nil {
 		return err
 	}
@@ -70,7 +70,7 @@ func (g *Generator) Generate(zctx *ZRpcContext) error {
 		return err
 	}
 
-	err = g.GenPb(dirCtx, zctx)
+	err = g.GenPb(dirCtx, context)
 	if err != nil {
 		return err
 	}
@@ -80,27 +80,22 @@ func (g *Generator) Generate(zctx *ZRpcContext) error {
 		return err
 	}
 
-	err = g.GenSvc(dirCtx, proto, g.cfg)
+	err = g.GenLogic(dirCtx, proto, g.cfg, context)
 	if err != nil {
 		return err
 	}
 
-	err = g.GenLogic(dirCtx, proto, g.cfg, zctx)
+	err = g.GenServer(dirCtx, proto, g.cfg, context)
 	if err != nil {
 		return err
 	}
 
-	err = g.GenServer(dirCtx, proto, g.cfg, zctx)
+	err = g.GenMain(dirCtx, proto, g.cfg, context)
 	if err != nil {
 		return err
 	}
 
-	err = g.GenMain(dirCtx, proto, g.cfg, zctx)
-	if err != nil {
-		return err
-	}
-
-	err = g.GenCall(dirCtx, proto, g.cfg, zctx)
+	err = g.GenCall(dirCtx, proto, g.cfg, context)
 
 	console.NewColorConsole().MarkDone()
 

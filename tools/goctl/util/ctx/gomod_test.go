@@ -2,16 +2,16 @@ package ctx
 
 import (
 	"bytes"
+	"github.com/sixwaaaay/gen/util/stringx"
 	"go/build"
 	"os"
 	"path/filepath"
 	"reflect"
 	"testing"
 
+	"github.com/sixwaaaay/gen/rpc/execx"
+	"github.com/sixwaaaay/gen/util/pathx"
 	"github.com/stretchr/testify/assert"
-	"github.com/zeromicro/go-zero/core/stringx"
-	"github.com/zeromicro/go-zero/tools/goctl/rpc/execx"
-	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
 )
 
 func TestProjectFromGoMod(t *testing.T) {

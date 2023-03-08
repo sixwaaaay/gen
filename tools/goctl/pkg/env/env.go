@@ -8,23 +8,23 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/zeromicro/go-zero/tools/goctl/internal/version"
-	sortedmap "github.com/zeromicro/go-zero/tools/goctl/pkg/collection"
-	"github.com/zeromicro/go-zero/tools/goctl/pkg/protoc"
-	"github.com/zeromicro/go-zero/tools/goctl/pkg/protocgengo"
-	"github.com/zeromicro/go-zero/tools/goctl/pkg/protocgengogrpc"
-	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
+	"github.com/sixwaaaay/gen/internal/version"
+	sortedmap "github.com/sixwaaaay/gen/pkg/collection"
+	"github.com/sixwaaaay/gen/pkg/protoc"
+	"github.com/sixwaaaay/gen/pkg/protocgengo"
+	"github.com/sixwaaaay/gen/pkg/protocgengogrpc"
+	"github.com/sixwaaaay/gen/util/pathx"
 )
 
-var goctlEnv *sortedmap.SortedMap
+var genEnv *sortedmap.SortedMap
 
 const (
-	GoctlOS                = "GOCTL_OS"
-	GoctlArch              = "GOCTL_ARCH"
-	GoctlHome              = "GOCTL_HOME"
-	GoctlDebug             = "GOCTL_DEBUG"
-	GoctlCache             = "GOCTL_CACHE"
-	GoctlVersion           = "GOCTL_VERSION"
+	OS                     = "TOOL_OS"
+	Arch                   = "TOOL_ARCH"
+	Home                   = "TOOL_HOME"
+	Debug                  = "TOOL_DEBUG"
+	Cache                  = "TOOL_CACHE"
+	Version                = "TOOL_VERSION"
 	ProtocVersion          = "PROTOC_VERSION"
 	ProtocGenGoVersion     = "PROTOC_GEN_GO_VERSION"
 	ProtocGenGoGRPCVersion = "PROTO_GEN_GO_GRPC_VERSION"
@@ -32,56 +32,56 @@ const (
 	envFileDir = "env"
 )
 
-// init initializes the goctl environment variables, the environment variables of the function are set in order,
+// init initializes the gen environment variables, the environment variables of the function are set in order,
 // please do not change the logic order of the code.
 func init() {
-	defaultGoctlHome, err := pathx.GetDefaultGoctlHome()
+	defaultHome, err := pathx.GetDefaultHome()
 	if err != nil {
 		log.Fatalln(err)
 	}
-	goctlEnv = sortedmap.New()
-	goctlEnv.SetKV(GoctlOS, runtime.GOOS)
-	goctlEnv.SetKV(GoctlArch, runtime.GOARCH)
-	existsEnv := readEnv(defaultGoctlHome)
+	genEnv = sortedmap.New()
+	genEnv.SetKV(OS, runtime.GOOS)
+	genEnv.SetKV(Arch, runtime.GOARCH)
+	existsEnv := readEnv(defaultHome)
 	if existsEnv != nil {
-		goctlHome, ok := existsEnv.GetString(GoctlHome)
-		if ok && len(goctlHome) > 0 {
-			goctlEnv.SetKV(GoctlHome, goctlHome)
+		genHome, ok := existsEnv.GetString(Home)
+		if ok && len(genHome) > 0 {
+			genEnv.SetKV(Home, genHome)
 		}
-		if debug := existsEnv.GetOr(GoctlDebug, "").(string); debug != "" {
+		if debug := existsEnv.GetOr(Debug, "").(string); debug != "" {
 			if strings.EqualFold(debug, "true") || strings.EqualFold(debug, "false") {
-				goctlEnv.SetKV(GoctlDebug, debug)
+				genEnv.SetKV(Debug, debug)
 			}
 		}
-		if value := existsEnv.GetStringOr(GoctlCache, ""); value != "" {
-			goctlEnv.SetKV(GoctlCache, value)
+		if value := existsEnv.GetStringOr(Cache, ""); value != "" {
+			genEnv.SetKV(Cache, value)
 		}
 	}
-	if !goctlEnv.HasKey(GoctlHome) {
-		goctlEnv.SetKV(GoctlHome, defaultGoctlHome)
+	if !genEnv.HasKey(Home) {
+		genEnv.SetKV(Home, defaultHome)
 	}
-	if !goctlEnv.HasKey(GoctlDebug) {
-		goctlEnv.SetKV(GoctlDebug, "False")
+	if !genEnv.HasKey(Debug) {
+		genEnv.SetKV(Debug, "False")
 	}
 
-	if !goctlEnv.HasKey(GoctlCache) {
+	if !genEnv.HasKey(Cache) {
 		cacheDir, _ := pathx.GetCacheDir()
-		goctlEnv.SetKV(GoctlCache, cacheDir)
+		genEnv.SetKV(Cache, cacheDir)
 	}
 
-	goctlEnv.SetKV(GoctlVersion, version.BuildVersion)
+	genEnv.SetKV(Version, version.BuildVersion)
 	protocVer, _ := protoc.Version()
-	goctlEnv.SetKV(ProtocVersion, protocVer)
+	genEnv.SetKV(ProtocVersion, protocVer)
 
 	protocGenGoVer, _ := protocgengo.Version()
-	goctlEnv.SetKV(ProtocGenGoVersion, protocGenGoVer)
+	genEnv.SetKV(ProtocGenGoVersion, protocGenGoVer)
 
 	protocGenGoGrpcVer, _ := protocgengogrpc.Version()
-	goctlEnv.SetKV(ProtocGenGoGRPCVersion, protocGenGoGrpcVer)
+	genEnv.SetKV(ProtocGenGoGRPCVersion, protocGenGoGrpcVer)
 }
 
 func Print() string {
-	return strings.Join(goctlEnv.Format(), "\n")
+	return strings.Join(genEnv.Format(), "\n")
 }
 
 func Get(key string) string {
@@ -89,11 +89,11 @@ func Get(key string) string {
 }
 
 func GetOr(key, def string) string {
-	return goctlEnv.GetStringOr(key, def)
+	return genEnv.GetStringOr(key, def)
 }
 
-func readEnv(goctlHome string) *sortedmap.SortedMap {
-	envFile := filepath.Join(goctlHome, envFileDir)
+func readEnv(genHome string) *sortedmap.SortedMap {
+	envFile := filepath.Join(genHome, envFileDir)
 	data, err := os.ReadFile(envFile)
 	if err != nil {
 		return nil
@@ -111,7 +111,7 @@ func readEnv(goctlHome string) *sortedmap.SortedMap {
 }
 
 func WriteEnv(kv []string) error {
-	defaultGoctlHome, err := pathx.GetDefaultGoctlHome()
+	defaultGenHome, err := pathx.GetDefaultHome()
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -124,15 +124,15 @@ func WriteEnv(kv []string) error {
 	}
 	data.RangeIf(func(key, value any) bool {
 		switch key.(string) {
-		case GoctlHome, GoctlCache:
+		case Home, Cache:
 			path := value.(string)
 			if !pathx.FileExists(path) {
 				err = fmt.Errorf("[writeEnv]: path %q is not exists", path)
 				return false
 			}
 		}
-		if goctlEnv.HasKey(key) {
-			goctlEnv.SetKV(key, value)
+		if genEnv.HasKey(key) {
+			genEnv.SetKV(key, value)
 			return true
 		} else {
 			err = fmt.Errorf("[writeEnv]: invalid key: %v", key)
@@ -142,6 +142,6 @@ func WriteEnv(kv []string) error {
 	if err != nil {
 		return err
 	}
-	envFile := filepath.Join(defaultGoctlHome, envFileDir)
-	return os.WriteFile(envFile, []byte(strings.Join(goctlEnv.Format(), "\n")), 0o777)
+	envFile := filepath.Join(defaultGenHome, envFileDir)
+	return os.WriteFile(envFile, []byte(strings.Join(genEnv.Format(), "\n")), 0o777)
 }

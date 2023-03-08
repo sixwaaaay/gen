@@ -3,18 +3,18 @@ package generator
 import (
 	_ "embed"
 	"fmt"
+	"github.com/sixwaaaay/gen/util/collection"
 	"path/filepath"
 	"sort"
 	"strings"
 
 	"github.com/emicklei/proto"
-	"github.com/zeromicro/go-zero/core/collection"
-	conf "github.com/zeromicro/go-zero/tools/goctl/config"
-	"github.com/zeromicro/go-zero/tools/goctl/rpc/parser"
-	"github.com/zeromicro/go-zero/tools/goctl/util"
-	"github.com/zeromicro/go-zero/tools/goctl/util/format"
-	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
-	"github.com/zeromicro/go-zero/tools/goctl/util/stringx"
+	conf "github.com/sixwaaaay/gen/config"
+	"github.com/sixwaaaay/gen/rpc/parser"
+	"github.com/sixwaaaay/gen/util"
+	"github.com/sixwaaaay/gen/util/format"
+	"github.com/sixwaaaay/gen/util/pathx"
+	"github.com/sixwaaaay/gen/util/stringx"
 )
 
 const (
@@ -36,7 +36,7 @@ var callTemplateText string
 // GenCall generates the rpc client code, which is the entry point for the rpc service call.
 // It is a layer of encapsulation for the rpc client and shields the details in the pb.
 func (g *Generator) GenCall(ctx DirContext, proto parser.Proto, cfg *conf.Config,
-	c *ZRpcContext) error {
+	c *RpcContext) error {
 	if !c.Multiple {
 		return g.genCallInCompatibility(ctx, proto, cfg)
 	}
@@ -77,7 +77,7 @@ func (g *Generator) genCallGroup(ctx DirContext, proto parser.Proto, cfg *conf.C
 			}
 		}
 		if hasSameNameBetweenMessageAndService {
-			serviceName = stringx.From(service.Name + "_zrpc_client").ToCamel()
+			serviceName = stringx.From(service.Name + "_rpc_client").ToCamel()
 		}
 
 		functions, err := g.genFunction(proto.PbPackage, serviceName, service, isCallPkgSameToGrpcPkg)
@@ -114,6 +114,7 @@ func (g *Generator) genCallGroup(ctx DirContext, proto parser.Proto, cfg *conf.C
 			"serviceName":    serviceName,
 			"functions":      strings.Join(functions, pathx.NL),
 			"interface":      strings.Join(iFunctions, pathx.NL),
+			"pkg":            proto.PbPackage,
 		}, filename, true); err != nil {
 			return err
 		}
@@ -149,7 +150,7 @@ func (g *Generator) genCallInCompatibility(ctx DirContext, proto parser.Proto,
 	}
 
 	if hasSameNameBetweenMessageAndService {
-		serviceName = stringx.From(service.Name + "_zrpc_client").ToCamel()
+		serviceName = stringx.From(service.Name + "_rpc_client").ToCamel()
 	}
 
 	filename := filepath.Join(dir.Filename, fmt.Sprintf("%s.go", callFilename))
@@ -186,6 +187,7 @@ func (g *Generator) genCallInCompatibility(ctx DirContext, proto parser.Proto,
 		"serviceName":    serviceName,
 		"functions":      strings.Join(functions, pathx.NL),
 		"interface":      strings.Join(iFunctions, pathx.NL),
+		"pkg":            proto.PbPackage,
 	}, filename, true)
 }
 

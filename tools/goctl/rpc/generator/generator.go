@@ -3,9 +3,9 @@ package generator
 import (
 	"log"
 
-	conf "github.com/zeromicro/go-zero/tools/goctl/config"
-	"github.com/zeromicro/go-zero/tools/goctl/env"
-	"github.com/zeromicro/go-zero/tools/goctl/util/console"
+	conf "github.com/sixwaaaay/gen/config"
+	"github.com/sixwaaaay/gen/env"
+	"github.com/sixwaaaay/gen/util/console"
 )
 
 // Generator defines the environment needs of rpc service generation

@@ -2,26 +2,21 @@ package generator
 
 import (
 	"fmt"
+	"github.com/sixwaaaay/gen/rpc/execx"
+	"github.com/sixwaaaay/gen/util/stringx"
+	"github.com/stretchr/testify/assert"
 	"go/build"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
-
-	"github.com/stretchr/testify/assert"
-	"github.com/zeromicro/go-zero/core/logx"
-	"github.com/zeromicro/go-zero/core/stringx"
-	"github.com/zeromicro/go-zero/tools/goctl/rpc/execx"
 )
 
 func TestRpcGenerate(t *testing.T) {
 	_ = Clean()
 	g := NewGenerator("gozero", true)
 	err := g.Prepare()
-	if err != nil {
-		logx.Error(err)
-		return
-	}
+	assert.NoError(t, err)
 	projectName := stringx.Rand()
 	src := filepath.Join(build.Default.GOPATH, "src")
 	_, err = os.Stat(src)
@@ -39,7 +34,7 @@ func TestRpcGenerate(t *testing.T) {
 
 	// case go path
 	t.Run("GOPATH", func(t *testing.T) {
-		ctx := &ZRpcContext{
+		ctx := &RpcContext{
 			Src: "./test.proto",
 			ProtocCmd: fmt.Sprintf("protoc -I=%s test.proto --go_out=%s --go_opt=Mbase/common.proto=./base --go-grpc_out=%s",
 				common, projectDir, projectDir),
@@ -64,13 +59,10 @@ func TestRpcGenerate(t *testing.T) {
 		workDir := projectDir
 		name := filepath.Base(projectDir)
 		_, err = execx.Run("go mod init "+name, workDir)
-		if err != nil {
-			logx.Error(err)
-			return
-		}
+		assert.NoError(t, err)
 
 		projectDir = filepath.Join(workDir, projectName)
-		ctx := &ZRpcContext{
+		ctx := &RpcContext{
 			Src: "./test.proto",
 			ProtocCmd: fmt.Sprintf("protoc -I=%s test.proto --go_out=%s --go_opt=Mbase/common.proto=./base --go-grpc_out=%s",
 				common, projectDir, projectDir),

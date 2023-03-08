@@ -1,25 +1,16 @@
 build:
-	go build -ldflags="-s -w" goctl.go
-	$(if $(shell command -v upx), upx goctl)
+	go build -ldflags="-s -w" gen.go
+	$(if $(shell command -v upx), upx gen)
 
 mac:
-	GOOS=darwin go build -ldflags="-s -w" -o goctl-darwin goctl.go
-	$(if $(shell command -v upx), upx goctl-darwin)
+	GOOS=darwin go build -ldflags="-s -w" -o gen-darwin gen.go
+	$(if $(shell command -v upx), upx gen-darwin)
 
 win:
-	GOOS=windows go build -ldflags="-s -w" -o goctl.exe goctl.go
-	$(if $(shell command -v upx), upx goctl.exe)
+	GOOS=windows go build -ldflags="-s -w" -o gen.exe gen.go
+	$(if $(shell command -v upx), upx gen.exe)
 
 linux:
-	GOOS=linux go build -ldflags="-s -w" -o goctl-linux goctl.go
-	$(if $(shell command -v upx), upx goctl-linux)
+	GOOS=linux go build -ldflags="-s -w" -o gen-linux gen.go
+	$(if $(shell command -v upx), upx gen-linux)
 
-image:
-	docker build --rm --platform linux/amd64 -t kevinwan/goctl:$(version) .
-	docker tag kevinwan/goctl:$(version) kevinwan/goctl:latest
-	docker push kevinwan/goctl:$(version)
-	docker push kevinwan/goctl:latest
-	docker build --rm --platform linux/arm64 -t kevinwan/goctl:$(version)-arm64 .
-	docker tag kevinwan/goctl:$(version)-arm64 kevinwan/goctl:latest-arm64
-	docker push kevinwan/goctl:$(version)-arm64
-	docker push kevinwan/goctl:latest-arm64

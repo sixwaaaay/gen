@@ -1,14 +1,14 @@
 package ctx
 
 import (
+	"github.com/sixwaaaay/gen/util/stringx"
 	"go/build"
 	"os"
 	"path/filepath"
 	"testing"
 
+	"github.com/sixwaaaay/gen/util/pathx"
 	"github.com/stretchr/testify/assert"
-	"github.com/zeromicro/go-zero/core/stringx"
-	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
 )
 
 func TestProjectFromGoPath(t *testing.T) {

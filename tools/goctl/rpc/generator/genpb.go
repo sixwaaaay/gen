@@ -7,16 +7,16 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/zeromicro/go-zero/tools/goctl/rpc/execx"
+	"github.com/sixwaaaay/gen/rpc/execx"
 )
 
-// GenPb generates the pb.go file, which is a layer of packaging for protoc to generate gprc,
-// but the commands and flags in protoc are not completely joined in goctl. At present, proto_path(-I) is introduced
-func (g *Generator) GenPb(ctx DirContext, c *ZRpcContext) error {
+// GenPb generates the pb.go file, which is a layer of packaging for protoc to generate grpc,
+// but the commands and flags in protoc are not completely joined in gen. At present, proto_path(-I) is introduced
+func (g *Generator) GenPb(ctx DirContext, c *RpcContext) error {
 	return g.genPbDirect(ctx, c)
 }
 
-func (g *Generator) genPbDirect(ctx DirContext, c *ZRpcContext) error {
+func (g *Generator) genPbDirect(ctx DirContext, c *RpcContext) error {
 	g.log.Debug("[command]: %s", c.ProtocCmd)
 	pwd, err := os.Getwd()
 	if err != nil {
@@ -30,7 +30,7 @@ func (g *Generator) genPbDirect(ctx DirContext, c *ZRpcContext) error {
 	return g.setPbDir(ctx, c)
 }
 
-func (g *Generator) setPbDir(ctx DirContext, c *ZRpcContext) error {
+func (g *Generator) setPbDir(ctx DirContext, c *RpcContext) error {
 	pbDir, err := findPbFile(c.GoOutput, false)
 	if err != nil {
 		return err
@@ -51,7 +51,7 @@ func (g *Generator) setPbDir(ctx DirContext, c *ZRpcContext) error {
 	}
 	if pbDir == c.Output {
 		return fmt.Errorf("the output of pb.go and _grpc.pb.go must not be the same "+
-			"with --zrpc_out:\npb output: %s\nzrpc out: %s", pbDir, c.Output)
+			"with --rpc_out:\npb output: %s\nrpc out: %s", pbDir, c.Output)
 	}
 	ctx.SetPbDir(pbDir, grpcDir)
 	return nil

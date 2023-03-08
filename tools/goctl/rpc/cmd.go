@@ -1,9 +1,9 @@
 package rpc
 
 import (
+	"github.com/sixwaaaay/gen/config"
+	"github.com/sixwaaaay/gen/rpc/cli"
 	"github.com/spf13/cobra"
-	"github.com/zeromicro/go-zero/tools/goctl/config"
-	"github.com/zeromicro/go-zero/tools/goctl/rpc/cli"
 )
 
 var (
@@ -34,15 +34,15 @@ var (
 	protocCmd = &cobra.Command{
 		Use:     "protoc",
 		Short:   "Generate grpc code",
-		Example: "goctl rpc protoc xx.proto --go_out=./pb --go-grpc_out=./pb --zrpc_out=.",
+		Example: "gen rpc protoc xx.proto --go_out=./pb --go-grpc_out=./pb --rpc_out=.",
 		Args:    cobra.MatchAll(cobra.ExactArgs(1), cobra.OnlyValidArgs),
-		RunE:    cli.ZRPC,
+		RunE:    cli.RPC,
 	}
 )
 
 func init() {
 	Cmd.Flags().StringVar(&cli.VarStringOutput, "o", "", "Output a sample proto file")
-	Cmd.Flags().StringVar(&cli.VarStringHome, "home", "", "The goctl home path of "+
+	Cmd.Flags().StringVar(&cli.VarStringHome, "home", "", "The gen home path of "+
 		"the template, --home and --remote cannot be set at the same time, if they are, --remote has"+
 		" higher priority")
 	Cmd.Flags().StringVar(&cli.VarStringRemote, "remote", "", "The remote git repo"+
@@ -55,10 +55,10 @@ func init() {
 	newCmd.Flags().StringSliceVar(&cli.VarStringSliceGoOpt, "go_opt", nil, "")
 	newCmd.Flags().StringSliceVar(&cli.VarStringSliceGoGRPCOpt, "go-grpc_opt", nil, "")
 	newCmd.Flags().StringVar(&cli.VarStringStyle, "style", config.DefaultFormat, "The file "+
-		"naming format, see [https://github.com/zeromicro/go-zero/tree/master/tools/goctl/config/readme.md]")
+		"naming format, see [https://github.com/zeromicro/go-zero/tree/master/tools/gen/config/readme.md]")
 	newCmd.Flags().BoolVar(&cli.VarBoolIdea, "idea", false, "Whether the command "+
 		"execution environment is from idea plugin.")
-	newCmd.Flags().StringVar(&cli.VarStringHome, "home", "", "The goctl home path "+
+	newCmd.Flags().StringVar(&cli.VarStringHome, "home", "", "The gen home path "+
 		"of the template, --home and --remote cannot be set at the same time, if they are, --remote "+
 		"has higher priority")
 	newCmd.Flags().StringVar(&cli.VarStringRemote, "remote", "", "The remote git "+
@@ -79,10 +79,10 @@ func init() {
 	protocCmd.Flags().StringSliceVar(&cli.VarStringSliceGoGRPCOpt, "go-grpc_opt", nil, "")
 	protocCmd.Flags().StringSliceVar(&cli.VarStringSlicePlugin, "plugin", nil, "")
 	protocCmd.Flags().StringSliceVarP(&cli.VarStringSliceProtoPath, "proto_path", "I", nil, "")
-	protocCmd.Flags().StringVar(&cli.VarStringZRPCOut, "zrpc_out", "", "The zrpc output directory")
+	protocCmd.Flags().StringVar(&cli.VarStringRPCOut, "rpc_out", "", "The rpc output directory")
 	protocCmd.Flags().StringVar(&cli.VarStringStyle, "style", config.DefaultFormat, "The file "+
-		"naming format, see [https://github.com/zeromicro/go-zero/tree/master/tools/goctl/config/readme.md]")
-	protocCmd.Flags().StringVar(&cli.VarStringHome, "home", "", "The goctl home "+
+		"naming format, see [https://github.com/zeromicro/go-zero/tree/master/tools/gen/config/readme.md]")
+	protocCmd.Flags().StringVar(&cli.VarStringHome, "home", "", "The gen home "+
 		"path of the template, --home and --remote cannot be set at the same time, if they are, "+
 		"--remote has higher priority")
 	protocCmd.Flags().StringVar(&cli.VarStringRemote, "remote", "", "The remote "+
@@ -100,7 +100,7 @@ func init() {
 	protocCmd.Flags().MarkHidden("proto_path")
 
 	templateCmd.Flags().StringVar(&cli.VarStringOutput, "o", "", "Output a sample proto file")
-	templateCmd.Flags().StringVar(&cli.VarStringHome, "home", "", "The goctl home"+
+	templateCmd.Flags().StringVar(&cli.VarStringHome, "home", "", "The gen home"+
 		" path of the template, --home and --remote cannot be set at the same time, if they are, "+
 		"--remote has higher priority")
 	templateCmd.Flags().StringVar(&cli.VarStringRemote, "remote", "", "The remote "+

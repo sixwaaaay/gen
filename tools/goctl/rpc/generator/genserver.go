@@ -3,23 +3,22 @@ package generator
 import (
 	_ "embed"
 	"fmt"
+	"github.com/sixwaaaay/gen/util/collection"
 	"path/filepath"
 	"strings"
 
-	"github.com/zeromicro/go-zero/core/collection"
-	conf "github.com/zeromicro/go-zero/tools/goctl/config"
-	"github.com/zeromicro/go-zero/tools/goctl/rpc/parser"
-	"github.com/zeromicro/go-zero/tools/goctl/util"
-	"github.com/zeromicro/go-zero/tools/goctl/util/format"
-	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
-	"github.com/zeromicro/go-zero/tools/goctl/util/stringx"
+	conf "github.com/sixwaaaay/gen/config"
+	"github.com/sixwaaaay/gen/rpc/parser"
+	"github.com/sixwaaaay/gen/util"
+	"github.com/sixwaaaay/gen/util/format"
+	"github.com/sixwaaaay/gen/util/pathx"
+	"github.com/sixwaaaay/gen/util/stringx"
 )
 
 const functionTemplate = `
 {{if .hasComment}}{{.comment}}{{end}}
 func (s *{{.server}}Server) {{.method}} ({{if .notStream}}ctx context.Context,{{if .hasReq}} in {{.request}}{{end}}{{else}}{{if .hasReq}} in {{.request}},{{end}}stream {{.streamBody}}{{end}}) ({{if .notStream}}{{.response}},{{end}}error) {
-	l := {{.logicPkg}}.New{{.logicName}}({{if .notStream}}ctx,{{else}}stream.Context(),{{end}}s.svcCtx)
-	return l.{{.method}}({{if .hasReq}}in{{if .stream}} ,stream{{end}}{{else}}{{if .stream}}stream{{end}}{{end}})
+	return s.{{.logicName}}.{{.method}}(ctx,{{if .hasReq}}in{{if .stream}} ,stream{{end}}{{else}}{{if .stream}}stream{{end}}{{end}})
 }
 `
 
@@ -28,7 +27,7 @@ var serverTemplate string
 
 // GenServer generates rpc server file, which is an implementation of rpc server
 func (g *Generator) GenServer(ctx DirContext, proto parser.Proto, cfg *conf.Config,
-	c *ZRpcContext) error {
+	c *RpcContext) error {
 	if !c.Multiple {
 		return g.genServerInCompatibility(ctx, proto, cfg, c)
 	}
@@ -63,15 +62,16 @@ func (g *Generator) genServerGroup(ctx DirContext, proto parser.Proto, cfg *conf
 		logicImport = fmt.Sprintf(`"%v"`, logicChildPkg)
 		serverFile = filepath.Join(dir.Filename, serverDir, serverFilename+".go")
 
-		svcImport := fmt.Sprintf(`"%v"`, ctx.GetSvc().Package)
 		pbImport := fmt.Sprintf(`"%v"`, ctx.GetPb().Package)
 
 		imports := collection.NewSet()
-		imports.AddStr(logicImport, svcImport, pbImport)
+		imports.AddStr(logicImport, pbImport)
+		imports.AddStr(fmt.Sprintf(`"%v"`, ctx.GetConfig().Package))
 
 		head := util.GetHead(proto.Name)
 
-		funcList, err := g.genFunctions(proto.PbPackage, service, true)
+		out, err := g.genFunctions(proto.PbPackage, service, true)
+		funcList, params, init := out.functions, out.params, out.initParams
 		if err != nil {
 			return err
 		}
@@ -93,10 +93,13 @@ func (g *Generator) genServerGroup(ctx DirContext, proto parser.Proto, cfg *conf
 			"head": head,
 			"unimplementedServer": fmt.Sprintf("%s.Unimplemented%sServer", proto.PbPackage,
 				stringx.From(service.Name).ToCamel()),
-			"server":    stringx.From(service.Name).ToCamel(),
-			"imports":   strings.Join(imports.KeysStr(), pathx.NL),
-			"funcs":     strings.Join(funcList, pathx.NL),
-			"notStream": notStream,
+			"server":     stringx.From(service.Name).ToCamel(),
+			"imports":    strings.Join(imports.KeysStr(), pathx.NL),
+			"funcs":      strings.Join(funcList, pathx.NL),
+			"notStream":  notStream,
+			"params":     strings.Join(params, pathx.NL),
+			"pkg":        proto.PbPackage,
+			"initParams": strings.Join(init, pathx.NL),
 		}, serverFile, true); err != nil {
 			return err
 		}
@@ -105,14 +108,14 @@ func (g *Generator) genServerGroup(ctx DirContext, proto parser.Proto, cfg *conf
 }
 
 func (g *Generator) genServerInCompatibility(ctx DirContext, proto parser.Proto,
-	cfg *conf.Config, c *ZRpcContext) error {
+	cfg *conf.Config, c *RpcContext) error {
 	dir := ctx.GetServer()
 	logicImport := fmt.Sprintf(`"%v"`, ctx.GetLogic().Package)
-	svcImport := fmt.Sprintf(`"%v"`, ctx.GetSvc().Package)
 	pbImport := fmt.Sprintf(`"%v"`, ctx.GetPb().Package)
 
 	imports := collection.NewSet()
-	imports.AddStr(logicImport, svcImport, pbImport)
+	imports.AddStr(logicImport, pbImport)
+	imports.AddStr(fmt.Sprintf(`"%v"`, ctx.GetConfig().Package))
 
 	head := util.GetHead(proto.Name)
 	service := proto.Service[0]
@@ -122,7 +125,8 @@ func (g *Generator) genServerInCompatibility(ctx DirContext, proto parser.Proto,
 	}
 
 	serverFile := filepath.Join(dir.Filename, serverFilename+".go")
-	funcList, err := g.genFunctions(proto.PbPackage, service, false)
+	out, err := g.genFunctions(proto.PbPackage, service, false)
+	funcList, params, init := out.functions, out.params, out.initParams
 	if err != nil {
 		return err
 	}
@@ -144,22 +148,33 @@ func (g *Generator) genServerInCompatibility(ctx DirContext, proto parser.Proto,
 		"head": head,
 		"unimplementedServer": fmt.Sprintf("%s.Unimplemented%sServer", proto.PbPackage,
 			stringx.From(service.Name).ToCamel()),
-		"server":    stringx.From(service.Name).ToCamel(),
-		"imports":   strings.Join(imports.KeysStr(), pathx.NL),
-		"funcs":     strings.Join(funcList, pathx.NL),
-		"notStream": notStream,
+		"server":     stringx.From(service.Name).ToCamel(),
+		"imports":    strings.Join(imports.KeysStr(), pathx.NL),
+		"funcs":      strings.Join(funcList, pathx.NL),
+		"notStream":  notStream,
+		"params":     strings.Join(params, pathx.NL),
+		"initParams": strings.Join(init, pathx.NL),
+		"pkg":        proto.PbPackage,
 	}, serverFile, true)
 }
 
-func (g *Generator) genFunctions(goPackage string, service parser.Service, multiple bool) ([]string, error) {
+type Out struct {
+	functions  []string
+	params     []string
+	initParams []string
+}
+
+func (g *Generator) genFunctions(goPackage string, service parser.Service, multiple bool) (Out, error) {
 	var (
-		functionList []string
-		logicPkg     string
+		functionList  []string
+		parameterList []string
+		initParams    []string
+		logicPkg      string
 	)
 	for _, rpc := range service.RPC {
 		text, err := pathx.LoadTemplate(category, serverFuncTemplateFile, functionTemplate)
 		if err != nil {
-			return nil, err
+			return Out{}, err
 		}
 
 		var logicName string
@@ -171,7 +186,8 @@ func (g *Generator) genFunctions(goPackage string, service parser.Service, multi
 			logicPkg = strings.ToLower(stringx.From(nameJoin).ToCamel())
 			logicName = fmt.Sprintf("%sLogic", stringx.From(rpc.Name).ToCamel())
 		}
-
+		parameterList = append(parameterList, fmt.Sprintf("%s *%s.%s", logicName, logicPkg, logicName))
+		initParams = append(initParams, fmt.Sprintf("%s: opt.%s,", logicName, logicName))
 		comment := parser.GetComment(rpc.Doc())
 		streamServer := fmt.Sprintf("%s.%s_%s%s", goPackage, parser.CamelCase(service.Name),
 			parser.CamelCase(rpc.Name), "Server")
@@ -190,10 +206,14 @@ func (g *Generator) genFunctions(goPackage string, service parser.Service, multi
 			"logicPkg":   logicPkg,
 		})
 		if err != nil {
-			return nil, err
+			return Out{}, err
 		}
 
 		functionList = append(functionList, buffer.String())
 	}
-	return functionList, nil
+	return Out{
+		functions:  functionList,
+		params:     parameterList,
+		initParams: initParams,
+	}, nil
 }

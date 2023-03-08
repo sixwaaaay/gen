@@ -5,7 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
+	"github.com/sixwaaaay/gen/util/pathx"
 )
 
 // GoBin returns a path of GOBIN.

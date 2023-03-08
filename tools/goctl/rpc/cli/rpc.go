@@ -1,0 +1,130 @@
+package cli
+
+import (
+	"errors"
+	"os"
+	"path/filepath"
+	"strings"
+
+	"github.com/sixwaaaay/gen/rpc/generator"
+	"github.com/sixwaaaay/gen/util"
+	"github.com/sixwaaaay/gen/util/pathx"
+	"github.com/spf13/cobra"
+)
+
+var (
+	errInvalidGrpcOutput = errors.New("RPC: missing --go-grpc_out")
+	errInvalidGoOutput   = errors.New("RPC: missing --go_out")
+	errInvalidRpcOutput  = errors.New("RPC: missing rpc output, please use --rpc_out to specify the output")
+)
+
+// RPC generates grpc code directly by protoc and generates
+// rpc code by gen.
+func RPC(_ *cobra.Command, args []string) error {
+	protocArgs := wrapProtocCmd("protoc", args)
+	pwd, err := os.Getwd()
+	if err != nil {
+		return err
+	}
+
+	source := args[0]
+	grpcOutList := VarStringSliceGoGRPCOut
+	goOutList := VarStringSliceGoOut
+	rpcOut := VarStringRPCOut
+	style := VarStringStyle
+	home := VarStringHome
+	remote := VarStringRemote
+	branch := VarStringBranch
+	verbose := VarBoolVerbose
+	if len(grpcOutList) == 0 {
+		return errInvalidGrpcOutput
+	}
+	if len(goOutList) == 0 {
+		return errInvalidGoOutput
+	}
+	goOut := goOutList[len(goOutList)-1]
+	grpcOut := grpcOutList[len(grpcOutList)-1]
+	if len(goOut) == 0 {
+		return errInvalidGrpcOutput
+	}
+	if len(rpcOut) == 0 {
+		return errInvalidRpcOutput
+	}
+	goOutAbs, err := filepath.Abs(goOut)
+	if err != nil {
+		return err
+	}
+	grpcOutAbs, err := filepath.Abs(grpcOut)
+	if err != nil {
+		return err
+	}
+	err = pathx.MkdirIfNotExist(goOutAbs)
+	if err != nil {
+		return err
+	}
+	err = pathx.MkdirIfNotExist(grpcOutAbs)
+	if err != nil {
+		return err
+	}
+	if len(remote) > 0 {
+		repo, _ := util.CloneIntoGitHome(remote, branch)
+		if len(repo) > 0 {
+			home = repo
+		}
+	}
+
+	if len(home) > 0 {
+		pathx.RegisterHome(home)
+	}
+	if !filepath.IsAbs(rpcOut) {
+		rpcOut = filepath.Join(pwd, rpcOut)
+	}
+
+	isGooglePlugin := len(grpcOut) > 0
+	goOut, err = filepath.Abs(goOut)
+	if err != nil {
+		return err
+	}
+	grpcOut, err = filepath.Abs(grpcOut)
+	if err != nil {
+		return err
+	}
+	rpcOut, err = filepath.Abs(rpcOut)
+	if err != nil {
+		return err
+	}
+
+	var ctx generator.RpcContext
+	ctx.Multiple = VarBoolMultiple
+	ctx.Src = source
+	ctx.GoOutput = goOut
+	ctx.GrpcOutput = grpcOut
+	ctx.IsGooglePlugin = isGooglePlugin
+	ctx.Output = rpcOut
+	ctx.ProtocCmd = strings.Join(protocArgs, " ")
+	g := generator.NewGenerator(style, verbose)
+	return g.Generate(&ctx)
+}
+
+func wrapProtocCmd(name string, args []string) []string {
+	ret := append([]string{name}, args...)
+	for _, protoPath := range VarStringSliceProtoPath {
+		ret = append(ret, "--proto_path", protoPath)
+	}
+	for _, goOpt := range VarStringSliceGoOpt {
+		ret = append(ret, "--go_opt", goOpt)
+	}
+	for _, goGRPCOpt := range VarStringSliceGoGRPCOpt {
+		ret = append(ret, "--go-grpc_opt", goGRPCOpt)
+	}
+	for _, goOut := range VarStringSliceGoOut {
+		ret = append(ret, "--go_out", goOut)
+	}
+	for _, goGRPCOut := range VarStringSliceGoGRPCOut {
+		ret = append(ret, "--go-grpc_out", goGRPCOut)
+	}
+	for _, plugin := range VarStringSlicePlugin {
+		ret = append(ret, "--plugin="+plugin)
+	}
+	return ret
+}

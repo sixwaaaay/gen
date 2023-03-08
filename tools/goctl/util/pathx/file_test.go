@@ -6,17 +6,17 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/sixwaaaay/gen/internal/version"
 	"github.com/stretchr/testify/assert"
-	"github.com/zeromicro/go-zero/tools/goctl/internal/version"
 )
 
 func TestGetTemplateDir(t *testing.T) {
 	category := "foo"
 	t.Run("before_have_templates", func(t *testing.T) {
 		home := t.TempDir()
-		RegisterGoctlHome("")
-		RegisterGoctlHome(home)
-		v := version.GetGoctlVersion()
+		RegisterHome("")
+		RegisterHome(home)
+		v := version.Version()
 		dir := filepath.Join(home, v, category)
 		err := MkdirIfNotExist(dir)
 		if err != nil {
@@ -32,13 +32,13 @@ func TestGetTemplateDir(t *testing.T) {
 			return
 		}
 		assert.Equal(t, dir, templateDir)
-		RegisterGoctlHome("")
+		RegisterHome("")
 	})
 
 	t.Run("before_has_no_template", func(t *testing.T) {
 		home := t.TempDir()
-		RegisterGoctlHome("")
-		RegisterGoctlHome(home)
+		RegisterHome("")
+		RegisterHome(home)
 		dir := filepath.Join(home, category)
 		err := MkdirIfNotExist(dir)
 		if err != nil {
@@ -52,7 +52,7 @@ func TestGetTemplateDir(t *testing.T) {
 	})
 
 	t.Run("default", func(t *testing.T) {
-		RegisterGoctlHome("")
+		RegisterHome("")
 		dir, err := GetTemplateDir(category)
 		if err != nil {
 			return
@@ -71,20 +71,20 @@ func TestGetGitHome(t *testing.T) {
 		return
 	}
 
-	expected := filepath.Join(homeDir, goctlDir, gitDir)
+	expected := filepath.Join(homeDir, genDir, gitDir)
 	assert.Equal(t, expected, actual)
 }
 
-func TestGetGoctlHome(t *testing.T) {
-	t.Run("goctl_is_file", func(t *testing.T) {
+func TestGetHome(t *testing.T) {
+	t.Run("gen_is_file", func(t *testing.T) {
 		tmpFile := filepath.Join(t.TempDir(), "a.tmp")
 		backupTempFile := tmpFile + ".old"
 		err := ioutil.WriteFile(tmpFile, nil, 0o666)
 		if err != nil {
 			return
 		}
-		RegisterGoctlHome(tmpFile)
-		home, err := GetGoctlHome()
+		RegisterHome(tmpFile)
+		home, err := GetHome()
 		if err != nil {
 			return
 		}
@@ -96,11 +96,11 @@ func TestGetGoctlHome(t *testing.T) {
 		assert.Nil(t, err)
 	})
 
-	t.Run("goctl_is_dir", func(t *testing.T) {
-		RegisterGoctlHome("")
+	t.Run("gen_is_dir", func(t *testing.T) {
+		RegisterHome("")
 		dir := t.TempDir()
-		RegisterGoctlHome(dir)
-		home, err := GetGoctlHome()
+		RegisterHome(dir)
+		home, err := GetHome()
 		assert.Nil(t, err)
 		assert.Equal(t, dir, home)
 	})

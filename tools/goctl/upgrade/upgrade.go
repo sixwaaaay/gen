@@ -4,16 +4,16 @@ import (
 	"fmt"
 	"runtime"
 
+	"github.com/sixwaaaay/gen/rpc/execx"
 	"github.com/spf13/cobra"
-	"github.com/zeromicro/go-zero/tools/goctl/rpc/execx"
 )
 
-// upgrade gets the latest goctl by
-// go install github.com/zeromicro/go-zero/tools/goctl@latest
+// upgrade gets the latest gen by
+// go install github.com/sixwaaaay/gen@latest
 func upgrade(_ *cobra.Command, _ []string) error {
-	cmd := `GO111MODULE=on GOPROXY=https://goproxy.cn/,direct go install github.com/zeromicro/go-zero/tools/goctl@latest`
+	cmd := `GO111MODULE=on GOPROXY=https://goproxy.cn/,direct go install github.com/sixwaaaay/gen@latest`
 	if runtime.GOOS == "windows" {
-		cmd = `set GOPROXY=https://goproxy.cn,direct && go install github.com/zeromicro/go-zero/tools/goctl@latest`
+		cmd = `set GOPROXY=https://goproxy.cn,direct && go install github.com/sixwaaaay/gen@latest`
 	}
 	info, err := execx.Run(cmd, "")
 	if err != nil {

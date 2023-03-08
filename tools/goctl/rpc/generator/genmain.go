@@ -6,11 +6,11 @@ import (
 	"path/filepath"
 	"strings"
 
-	conf "github.com/zeromicro/go-zero/tools/goctl/config"
-	"github.com/zeromicro/go-zero/tools/goctl/rpc/parser"
-	"github.com/zeromicro/go-zero/tools/goctl/util"
-	"github.com/zeromicro/go-zero/tools/goctl/util/format"
-	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
+	conf "github.com/sixwaaaay/gen/config"
+	"github.com/sixwaaaay/gen/rpc/parser"
+	"github.com/sixwaaaay/gen/util"
+	"github.com/sixwaaaay/gen/util/format"
+	"github.com/sixwaaaay/gen/util/pathx"
 )
 
 //go:embed main.tpl
@@ -22,9 +22,9 @@ type MainServiceTemplateData struct {
 	Pkg       string
 }
 
-// GenMain generates the main file of the rpc service, which is an rpc service program call entry
+// GenMain generates the main file of the rpc service, which is a rpc service program call entry
 func (g *Generator) GenMain(ctx DirContext, proto parser.Proto, cfg *conf.Config,
-	c *ZRpcContext) error {
+	c *RpcContext) error {
 	mainFilename, err := format.FileNamingFormat(cfg.NamingFormat, ctx.GetServiceName().Source())
 	if err != nil {
 		return err
@@ -33,9 +33,8 @@ func (g *Generator) GenMain(ctx DirContext, proto parser.Proto, cfg *conf.Config
 	fileName := filepath.Join(ctx.GetMain().Filename, fmt.Sprintf("%v.go", mainFilename))
 	imports := make([]string, 0)
 	pbImport := fmt.Sprintf(`"%v"`, ctx.GetPb().Package)
-	svcImport := fmt.Sprintf(`"%v"`, ctx.GetSvc().Package)
 	configImport := fmt.Sprintf(`"%v"`, ctx.GetConfig().Package)
-	imports = append(imports, configImport, pbImport, svcImport)
+	imports = append(imports, configImport, pbImport)
 
 	var serviceNames []MainServiceTemplateData
 	for _, e := range proto.Service {

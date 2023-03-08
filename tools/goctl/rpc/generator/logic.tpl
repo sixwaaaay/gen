@@ -4,21 +4,22 @@ import (
 	"context"
 
 	{{.imports}}
+    "go.uber.org/fx"
 
-	"github.com/zeromicro/go-zero/core/logx"
 )
 
 type {{.logicName}} struct {
-	ctx    context.Context
-	svcCtx *svc.ServiceContext
-	logx.Logger
+    conf  config.Config
 }
 
-func New{{.logicName}}(ctx context.Context,svcCtx *svc.ServiceContext) *{{.logicName}} {
+type {{.logicName}}Option struct {
+    fx.In
+    Config config.Config
+}
+
+func New{{.logicName}}(opt {{.logicName}}Option) *{{.logicName}} {
 	return &{{.logicName}}{
-		ctx:    ctx,
-		svcCtx: svcCtx,
-		Logger: logx.WithContext(ctx),
+        conf: opt.Config,
 	}
 }
 {{.functions}}

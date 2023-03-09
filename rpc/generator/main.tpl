@@ -1,11 +1,9 @@
 package main
 
 import (
-	"flag"
-	"fmt"
 
 	{{.imports}}
-    "github.com/uber-go/fx"
+    "go.uber.org/fx"
 )
 
 

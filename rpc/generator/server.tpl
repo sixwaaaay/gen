@@ -31,7 +31,10 @@ func New{{.server}}Server(opt ServerOption) *{{.server}}Server {
 
 
 var Module = fx.Module("server",
-	fx.Provide(New{{.server}}Server),
+	fx.Provide(
+	    New{{.server}}Server,
+        {{.constructors}}
+	),
 	fx.Invoke(func(conf config.Config, s *{{.server}}Server, lf fx.Lifecycle) error {
 		listener, err := net.Listen("tcp", conf.ListenOn)
 		if err != nil {

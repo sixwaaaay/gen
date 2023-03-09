@@ -1,9 +1,8 @@
 package util
 
 import (
+	"github.com/sirupsen/logrus"
 	"strings"
-
-	"github.com/sixwaaaay/gen/util/console"
 )
 
 var goKeyword = map[string]string{
@@ -103,7 +102,7 @@ func EscapeGolangKeyword(s string) string {
 	}
 
 	r := goKeyword[s]
-	console.Info("[EscapeGolangKeyword]: go keyword is forbidden %q, converted into %q", s, r)
+	logrus.Info("[EscapeGolangKeyword]: go keyword is forbidden %q, converted into %q", s, r)
 	return r
 }
 

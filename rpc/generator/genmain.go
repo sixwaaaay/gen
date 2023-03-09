@@ -3,6 +3,7 @@ package generator
 import (
 	_ "embed"
 	"fmt"
+	"github.com/sixwaaaay/gen/util/collection"
 	"path/filepath"
 	"strings"
 
@@ -31,10 +32,10 @@ func (g *Generator) GenMain(ctx DirContext, proto parser.Proto, cfg *conf.Config
 	}
 
 	fileName := filepath.Join(ctx.GetMain().Filename, fmt.Sprintf("%v.go", mainFilename))
-	imports := make([]string, 0)
-	pbImport := fmt.Sprintf(`"%v"`, ctx.GetPb().Package)
+	imports := collection.NewSet()
 	configImport := fmt.Sprintf(`"%v"`, ctx.GetConfig().Package)
-	imports = append(imports, configImport, pbImport)
+	serverImport := fmt.Sprintf(`"%v"`, ctx.GetServer().Package)
+	imports.AddStr(configImport, serverImport)
 
 	var serviceNames []MainServiceTemplateData
 	for _, e := range proto.Service {
@@ -54,7 +55,7 @@ func (g *Generator) GenMain(ctx DirContext, proto parser.Proto, cfg *conf.Config
 			serverPkg = filepath.Base(childPkg + "Server")
 			remoteImport = fmt.Sprintf(`%s "%v"`, serverPkg, childPkg)
 		}
-		imports = append(imports, remoteImport)
+		imports.AddStr(remoteImport)
 		serviceNames = append(serviceNames, MainServiceTemplateData{
 			Service:   parser.CamelCase(e.Name),
 			ServerPkg: serverPkg,
@@ -74,7 +75,7 @@ func (g *Generator) GenMain(ctx DirContext, proto parser.Proto, cfg *conf.Config
 
 	return util.With("main").GoFmt(true).Parse(text).SaveTo(map[string]any{
 		"serviceName":  etcFileName,
-		"imports":      strings.Join(imports, pathx.NL),
+		"imports":      strings.Join(imports.KeysStr(), pathx.NL),
 		"pkg":          proto.PbPackage,
 		"serviceNames": serviceNames,
 	}, fileName, false)

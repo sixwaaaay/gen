@@ -3,14 +3,15 @@ package cmd
 import (
 	_ "embed"
 	"fmt"
-	"github.com/sixwaaaay/gen/env"
-	"github.com/sixwaaaay/gen/upgrade"
 	"os"
 	"runtime"
 	"strings"
 	"text/template"
 
-	"github.com/logrusorgru/aurora"
+	"github.com/sixwaaaay/gen/upgrade"
+
+	"github.com/sirupsen/logrus"
+	"github.com/sixwaaaay/gen/env"
 	"github.com/sixwaaaay/gen/internal/version"
 	"github.com/sixwaaaay/gen/rpc"
 	"github.com/spf13/cobra"
@@ -39,7 +40,7 @@ var (
 func Execute() {
 	os.Args = supportGoStdFlag(os.Args)
 	if err := rootCmd.Execute(); err != nil {
-		fmt.Println(aurora.Red(err.Error()))
+		logrus.Error(err.Error())
 		os.Exit(codeFailure)
 	}
 }
@@ -95,6 +96,11 @@ func isBuiltin(name string) bool {
 }
 
 func init() {
+	logrus.SetFormatter(&logrus.TextFormatter{
+		ForceColors:   true,
+		FullTimestamp: true,
+	})
+
 	cobra.AddTemplateFuncs(template.FuncMap{
 		"blue":    blue,
 		"green":   green,

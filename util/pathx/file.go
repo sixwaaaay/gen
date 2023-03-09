@@ -12,7 +12,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/logrusorgru/aurora"
+	"github.com/sirupsen/logrus"
 	"github.com/sixwaaaay/gen/internal/version"
 )
 
@@ -57,8 +57,7 @@ func RemoveOrQuit(filename string) error {
 		return nil
 	}
 
-	fmt.Printf("%s exists, overwrite it?\nEnter to overwrite or Ctrl-C to cancel...",
-		aurora.BgRed(aurora.Bold(filename)))
+	logrus.Warnf("%s exists, overwrite it?\nEnter to overwrite or Ctrl-C to cancel...", filename)
 	bufio.NewReader(os.Stdin).ReadBytes('\n')
 
 	return os.Remove(filename)

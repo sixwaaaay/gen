@@ -1,16 +1,14 @@
 package generator
 
 import (
-	"log"
-
+	"github.com/sirupsen/logrus"
 	conf "github.com/sixwaaaay/gen/config"
 	"github.com/sixwaaaay/gen/env"
-	"github.com/sixwaaaay/gen/util/console"
 )
 
 // Generator defines the environment needs of rpc service generation
 type Generator struct {
-	log     console.Console
+	log     *logrus.Logger
 	cfg     *conf.Config
 	verbose bool
 }
@@ -19,13 +17,11 @@ type Generator struct {
 func NewGenerator(style string, verbose bool) *Generator {
 	cfg, err := conf.NewConfig(style)
 	if err != nil {
-		log.Fatalln(err)
+		logrus.Fatalln(err)
 	}
 
-	colorLogger := console.NewColorConsole(verbose)
-
 	return &Generator{
-		log:     colorLogger,
+		log:     logrus.StandardLogger(),
 		cfg:     cfg,
 		verbose: verbose,
 	}

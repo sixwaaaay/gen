@@ -71,7 +71,7 @@ func (g *Generator) genServerGroup(ctx DirContext, proto parser.Proto, cfg *conf
 		head := util.GetHead(proto.Name)
 
 		out, err := g.genFunctions(proto.PbPackage, service, true)
-		funcList, params, init := out.functions, out.params, out.initParams
+		funcList, params, init, constructors := out.functions, out.params, out.initParams, out.constructors
 		if err != nil {
 			return err
 		}
@@ -93,13 +93,14 @@ func (g *Generator) genServerGroup(ctx DirContext, proto parser.Proto, cfg *conf
 			"head": head,
 			"unimplementedServer": fmt.Sprintf("%s.Unimplemented%sServer", proto.PbPackage,
 				stringx.From(service.Name).ToCamel()),
-			"server":     stringx.From(service.Name).ToCamel(),
-			"imports":    strings.Join(imports.KeysStr(), pathx.NL),
-			"funcs":      strings.Join(funcList, pathx.NL),
-			"notStream":  notStream,
-			"params":     strings.Join(params, pathx.NL),
-			"pkg":        proto.PbPackage,
-			"initParams": strings.Join(init, pathx.NL),
+			"server":       stringx.From(service.Name).ToCamel(),
+			"imports":      strings.Join(imports.KeysStr(), pathx.NL),
+			"funcs":        strings.Join(funcList, pathx.NL),
+			"notStream":    notStream,
+			"params":       strings.Join(params, pathx.NL),
+			"pkg":          proto.PbPackage,
+			"initParams":   strings.Join(init, pathx.NL),
+			"constructors": strings.Join(constructors, pathx.NL),
 		}, serverFile, true); err != nil {
 			return err
 		}
@@ -126,7 +127,7 @@ func (g *Generator) genServerInCompatibility(ctx DirContext, proto parser.Proto,
 
 	serverFile := filepath.Join(dir.Filename, serverFilename+".go")
 	out, err := g.genFunctions(proto.PbPackage, service, false)
-	funcList, params, init := out.functions, out.params, out.initParams
+	funcList, params, init, constructors := out.functions, out.params, out.initParams, out.constructors
 	if err != nil {
 		return err
 	}
@@ -148,20 +149,22 @@ func (g *Generator) genServerInCompatibility(ctx DirContext, proto parser.Proto,
 		"head": head,
 		"unimplementedServer": fmt.Sprintf("%s.Unimplemented%sServer", proto.PbPackage,
 			stringx.From(service.Name).ToCamel()),
-		"server":     stringx.From(service.Name).ToCamel(),
-		"imports":    strings.Join(imports.KeysStr(), pathx.NL),
-		"funcs":      strings.Join(funcList, pathx.NL),
-		"notStream":  notStream,
-		"params":     strings.Join(params, pathx.NL),
-		"initParams": strings.Join(init, pathx.NL),
-		"pkg":        proto.PbPackage,
+		"server":       stringx.From(service.Name).ToCamel(),
+		"imports":      strings.Join(imports.KeysStr(), pathx.NL),
+		"funcs":        strings.Join(funcList, pathx.NL),
+		"notStream":    notStream,
+		"params":       strings.Join(params, pathx.NL),
+		"initParams":   strings.Join(init, pathx.NL),
+		"pkg":          proto.PbPackage,
+		"constructors": strings.Join(constructors, pathx.NL),
 	}, serverFile, true)
 }
 
 type Out struct {
-	functions  []string
-	params     []string
-	initParams []string
+	functions    []string
+	params       []string
+	initParams   []string
+	constructors []string
 }
 
 func (g *Generator) genFunctions(goPackage string, service parser.Service, multiple bool) (Out, error) {
@@ -169,6 +172,7 @@ func (g *Generator) genFunctions(goPackage string, service parser.Service, multi
 		functionList  []string
 		parameterList []string
 		initParams    []string
+		constructors  []string
 		logicPkg      string
 	)
 	for _, rpc := range service.RPC {
@@ -188,6 +192,7 @@ func (g *Generator) genFunctions(goPackage string, service parser.Service, multi
 		}
 		parameterList = append(parameterList, fmt.Sprintf("%s *%s.%s", logicName, logicPkg, logicName))
 		initParams = append(initParams, fmt.Sprintf("%s: opt.%s,", logicName, logicName))
+		constructors = append(constructors, fmt.Sprintf("%s.New%s,", logicPkg, logicName))
 		comment := parser.GetComment(rpc.Doc())
 		streamServer := fmt.Sprintf("%s.%s_%s%s", goPackage, parser.CamelCase(service.Name),
 			parser.CamelCase(rpc.Name), "Server")
@@ -212,8 +217,9 @@ func (g *Generator) genFunctions(goPackage string, service parser.Service, multi
 		functionList = append(functionList, buffer.String())
 	}
 	return Out{
-		functions:  functionList,
-		params:     parameterList,
-		initParams: initParams,
+		functions:    functionList,
+		params:       parameterList,
+		initParams:   initParams,
+		constructors: constructors,
 	}, nil
 }

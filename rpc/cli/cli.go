@@ -6,9 +6,9 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/sirupsen/logrus"
 	"github.com/sixwaaaay/gen/rpc/generator"
 	"github.com/sixwaaaay/gen/util"
-	"github.com/sixwaaaay/gen/util/console"
 	"github.com/sixwaaaay/gen/util/pathx"
 	"github.com/spf13/cobra"
 )
@@ -106,7 +106,7 @@ func RPCNew(_ *cobra.Command, args []string) error {
 // RPCTemplate is the entry for generate rpc template
 func RPCTemplate(latest bool) error {
 	if !latest {
-		console.Warning("deprecated: gen rpc template -o is deprecated and will be removed in the future, use gen rpc -o instead")
+		logrus.Warning("deprecated: gen rpc template -o is deprecated and will be removed in the future, use gen rpc -o instead")
 	}
 	protoFile := VarStringOutput
 	home := VarStringHome

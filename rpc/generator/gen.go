@@ -1,10 +1,10 @@
 package generator
 
 import (
+	"github.com/sirupsen/logrus"
 	"path/filepath"
 
 	"github.com/sixwaaaay/gen/rpc/parser"
-	"github.com/sixwaaaay/gen/util/console"
 	"github.com/sixwaaaay/gen/util/ctx"
 	"github.com/sixwaaaay/gen/util/pathx"
 )
@@ -97,7 +97,6 @@ func (g *Generator) Generate(context *RpcContext) error {
 
 	err = g.GenCall(dirCtx, proto, g.cfg, context)
 
-	console.NewColorConsole().MarkDone()
-
+	logrus.Info("Done.")
 	return err
 }

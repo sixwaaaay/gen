@@ -4,8 +4,8 @@ import (
 	"path/filepath"
 	"runtime"
 
+	"github.com/sirupsen/logrus"
 	"github.com/sixwaaaay/gen/pkg/golang"
-	"github.com/sixwaaaay/gen/util/console"
 	"github.com/sixwaaaay/gen/util/pathx"
 	"github.com/sixwaaaay/gen/vars"
 )
@@ -23,7 +23,7 @@ func Install(cacheDir, name string, installFn func(dest string) (string, error))
 	// read cache.
 	err := pathx.Copy(cacheFile, binFile)
 	if err == nil {
-		console.Info("%q installed from cache", name)
+		logrus.Info("%q installed from cache", name)
 		return binFile, nil
 	}
 
@@ -35,7 +35,7 @@ func Install(cacheDir, name string, installFn func(dest string) (string, error))
 	// write cache.
 	err = pathx.Copy(binFile, cacheFile)
 	if err != nil {
-		console.Warning("write cache error: %+v", err)
+		logrus.Warning("write cache error: %+v", err)
 	}
 	return binFile, nil
 }

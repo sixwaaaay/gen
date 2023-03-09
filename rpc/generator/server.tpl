@@ -62,6 +62,3 @@ var Module = fx.Module("server",
         return nil
 	}),
 )
-
-
-

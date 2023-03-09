@@ -56,7 +56,7 @@ func Prepare(install, force, verbose bool) error {
 		} else {
 			log.Error(`
 [env]: check env finish, some dependencies is not found in PATH, you can execute
-command 'gen env check --install' to install it, for details, please execute command 
+command 'gen env check --install' to install it, for details, please execute command
 'gen env check --help'`)
 		}
 	}()
